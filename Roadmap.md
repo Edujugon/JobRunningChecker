@@ -1,0 +1,1 @@
+* Accept multiple texts to be searched

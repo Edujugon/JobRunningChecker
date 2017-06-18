@@ -32,6 +32,7 @@ dispatch(new JobRunningChecker('TEXT-TO-SEARCH',function(){
             //Your Code which will be run just after the searched job has finished
         }));
 ```
+> Remember 'TEXT-TO-SEARCH' can be the job class name or any other text that contain to the job.
 
 Fire an event:
 
