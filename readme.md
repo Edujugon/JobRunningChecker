@@ -9,7 +9,9 @@ Many times you have to split the task in many jobs and you need to know when tha
 ## What does the JobRunningChecker class actually do?
 
 This class performs a db query looking for a provided text.
- That text can be the job class name you want to know if has finished or even any property data that belongs to that job.
+That text can be the job class name you want to know if has finished or even any property data that belongs to that job.
+If that text is found, JobRunningChecker will dispatch itself and perform the same check.
+Once it's not found it means the job or jobs list has finished so it's time to run the callback and fire the event.
 
 ## How to use it
 
