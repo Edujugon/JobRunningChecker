@@ -1,15 +1,15 @@
 # JobRunningChecker - A Laravel Job
 
-Run a callback and/or fire an event just after a job or a jobs list of a class have finished.
+Run a callback and/or fire an event just after a job or a jobs list of a same class has finished
 
-Many times you have to split the task in many jobs and you need to know when that list has finished in order to run another task.
- It could be a bit tricky but thanks to this Class you can add a callback or an event to be run just after the jobs have been completed.
+Sometimes you have to split the task in many jobs and you need to know when that list has finished in order to run another task.
+ It could be a bit tricky but thanks to this Class you can add a callback or an event to be run just after the job/jobs have been completed.
 
 
 ## What does the JobRunningChecker class actually do?
 
 This class performs a db query looking for a provided text.
-That text can be the job class name you want to know if has finished or even any property data that belongs to that job.
+That text can be the fully qualified job class name you want to know if has finished or even any property data that belongs to that job.
 If that text is found, JobRunningChecker will dispatch itself and perform the same check.
 Once it's not found it means the job or jobs list has finished so it's time to run the callback and fire the event.
 
@@ -32,7 +32,7 @@ dispatch(new JobRunningChecker('TEXT-TO-SEARCH',function(){
             //Your Code which will be run just after the searched job has finished
         }));
 ```
-> Remember 'TEXT-TO-SEARCH' can be the job class name or any other text that contain to the job.
+> Remember 'TEXT-TO-SEARCH' can be the fully qualified job class name or any other text that is contained by the job (property value,etc).
 
 Fire an event:
 
