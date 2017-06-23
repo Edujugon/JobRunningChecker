@@ -1,6 +1,6 @@
 # JobRunningChecker - A Laravel Job
 
-Run a callback and/or fire an event just after a job or a jobs list of a same class has finished
+Run a callback and/or fire an event just after a job or a list of jobs of the same class have finished
 
 Sometimes you have to split the task in many jobs and you need to know when that list has finished in order to run another task.
  It could be a bit tricky but thanks to this Class you can add a callback or an event to be run just after the job/jobs have been completed.
