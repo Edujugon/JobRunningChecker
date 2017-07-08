@@ -38,7 +38,7 @@ class JobRunningChecker implements ShouldQueue
     /**
      * @var callable
      */
-    protected $callback;
+    protected $callback = null;
 
     /**
      * @var Serializer
@@ -50,21 +50,18 @@ class JobRunningChecker implements ShouldQueue
      *
      * @param $textToSearch
      * @param callable $callback
-     * @param $event
+     * @param string $event
      * @param int $sleep
      */
     public function __construct($textToSearch, callable $callback = null, $event = null, $sleep = 0)
     {
         $this->textToSearch = $textToSearch;
         $this->event = $event;
+        $this->sleep = $sleep;
 
-        if ($sleep)
-            $this->sleep = $sleep;
+        $this->serializer = new Serializer();
 
-        if (is_callable($callback)) {
-            $this->serializer = new Serializer();
-            $this->callback = $this->serializer->serialize($callback);
-        }
+        $this->callback = $this->serializer->serialize($callback);
     }
 
     /**
@@ -74,23 +71,14 @@ class JobRunningChecker implements ShouldQueue
      */
     public function handle()
     {
+        $callback = $this->serializer->unserialize($this->callback);
+
         //If found, dispatch job
-        if ($this->foundText()) {
+        if ($this->foundText())
+            $this->dispatchItself($callback);
+        else
+            $this->runPayload($callback);
 
-            if ($this->sleep)
-                sleep($this->sleep);
-
-            $callback = $this->serializer->unserialize($this->callback);
-            dispatch(new JobRunningChecker($this->textToSearch, $callback(), $this->event, $this->sleep));
-        } else {
-            if ($this->event)
-                event(new $this->event());
-
-            if (!is_null($this->callback)) {
-                $callback = $this->serializer->unserialize($this->callback);
-                $callback();
-            }
-        }
     }
 
     /**
@@ -98,7 +86,7 @@ class JobRunningChecker implements ShouldQueue
      *
      * @return bool
      */
-    protected function foundText()
+    private function foundText()
     {
         $job = DB::table('jobs')->where('payload', 'like', '%' . $this->textToSearch . '%')
             ->where('payload', 'not like', '%' . 'JobRunningChecker' . '%')
@@ -108,5 +96,33 @@ class JobRunningChecker implements ShouldQueue
             return true;
 
         return false;
+    }
+
+    /**
+     * Dispatch the same job with same parameters
+     *
+     * @param $callback
+     */
+    private function dispatchItself($callback)
+    {
+        if ($this->sleep)
+            sleep($this->sleep);
+
+        dispatch(new JobRunningChecker($this->textToSearch, $callback, $this->event, $this->sleep));
+    }
+
+    /**
+     * Run the passed event and/or callback
+     *
+     * @param $callback
+     */
+    private function runPayload($callback)
+    {
+        if ($this->event)
+            event(new $this->event());
+
+        if (is_callable($this->callback)) {
+            $callback();
+        }
     }
 }
