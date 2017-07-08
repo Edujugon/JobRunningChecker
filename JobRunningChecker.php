@@ -75,9 +75,9 @@ class JobRunningChecker implements ShouldQueue
 
         //If found, dispatch job
         if ($this->foundText())
-            $this->dispatchItself($callback);
+            $this->dispatchItself($callback());
         else
-            $this->runPayload($callback);
+            $this->runPayload($callback());
 
     }
 
@@ -108,7 +108,7 @@ class JobRunningChecker implements ShouldQueue
         if ($this->sleep)
             sleep($this->sleep);
 
-        dispatch(new JobRunningChecker($this->textToSearch, $callback, $this->event, $this->sleep));
+        dispatch(new JobRunningChecker($this->textToSearch, $callback(), $this->event, $this->sleep));
     }
 
     /**
