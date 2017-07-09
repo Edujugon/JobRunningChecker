@@ -71,13 +71,11 @@ class JobRunningChecker implements ShouldQueue
      */
     public function handle()
     {
-        $callback = $this->serializer->unserialize($this->callback);
-
         //If found, dispatch job
         if ($this->foundText())
-            $this->dispatchItself($callback());
+            $this->dispatchItself();
         else
-            $this->runPayload($callback());
+            $this->runPayload();
 
     }
 
@@ -101,10 +99,11 @@ class JobRunningChecker implements ShouldQueue
     /**
      * Dispatch the same job with same parameters
      *
-     * @param $callback
      */
-    private function dispatchItself($callback)
+    private function dispatchItself()
     {
+        $callback = $this->serializer->unserialize($this->callback);
+
         if ($this->sleep)
             sleep($this->sleep);
 
@@ -114,14 +113,15 @@ class JobRunningChecker implements ShouldQueue
     /**
      * Run the passed event and/or callback
      *
-     * @param $callback
      */
-    private function runPayload($callback)
+    private function runPayload()
     {
+        $callback = $this->serializer->unserialize($this->callback);
+
         if ($this->event)
             event(new $this->event());
 
-        if (is_callable($this->callback)) {
+        if (is_callable($callback)) {
             $callback();
         }
     }
