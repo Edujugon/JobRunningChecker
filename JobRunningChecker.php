@@ -55,12 +55,13 @@ class JobRunningChecker implements ShouldQueue
      */
     public function __construct($textToSearch, callable $callback = null, $event = null, $sleep = 0)
     {
+        $this->serializer = new Serializer();
+
         $this->textToSearch = $textToSearch;
         $this->event = $event;
         $this->sleep = $sleep;
 
         if (is_callable($callback)) {
-            $this->serializer = new Serializer();
             $this->callback = $this->serializer->serialize($callback);
         }
     }
@@ -72,7 +73,8 @@ class JobRunningChecker implements ShouldQueue
      */
     public function handle()
     {
-        $this->callback = $this->serializer->unserialize($this->callback);
+        if (!is_null($this->callback))
+            $this->callback = $this->serializer->unserialize($this->callback);
 
         if ($this->foundText())
             $this->dispatchItself();
@@ -107,7 +109,9 @@ class JobRunningChecker implements ShouldQueue
         if ($this->sleep)
             sleep($this->sleep);
 
-        dispatch(new JobRunningChecker($this->textToSearch, ($this->callback)(), $this->event, $this->sleep));
+        $callback = is_callable($this->callback) ? ($this->callback)() : null;
+
+        dispatch(new JobRunningChecker($this->textToSearch, $callback, $this->event, $this->sleep));
     }
 
     /**
