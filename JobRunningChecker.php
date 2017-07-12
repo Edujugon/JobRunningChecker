@@ -59,9 +59,10 @@ class JobRunningChecker implements ShouldQueue
         $this->event = $event;
         $this->sleep = $sleep;
 
-        $this->serializer = new Serializer();
-
-        $this->callback = $this->serializer->serialize($callback);
+        if (is_callable($callback)) {
+            $this->serializer = new Serializer();
+            $this->callback = $this->serializer->serialize($callback);
+        }
     }
 
     /**
@@ -71,7 +72,8 @@ class JobRunningChecker implements ShouldQueue
      */
     public function handle()
     {
-        //If found, dispatch job
+        $this->callback = $this->serializer->unserialize($this->callback);
+
         if ($this->foundText())
             $this->dispatchItself();
         else
@@ -84,13 +86,13 @@ class JobRunningChecker implements ShouldQueue
      *
      * @return bool
      */
-    private function foundText()
+    public function foundText()
     {
-        $job = DB::table('jobs')->where('payload', 'like', '%' . $this->textToSearch . '%')
+        $count = DB::table('jobs')->where('payload', 'like', '%' . $this->textToSearch . '%')
             ->where('payload', 'not like', '%' . 'JobRunningChecker' . '%')
             ->count();
 
-        if ($job)
+        if ($count)
             return true;
 
         return false;
@@ -102,12 +104,10 @@ class JobRunningChecker implements ShouldQueue
      */
     private function dispatchItself()
     {
-        $callback = $this->serializer->unserialize($this->callback);
-
         if ($this->sleep)
             sleep($this->sleep);
 
-        dispatch(new JobRunningChecker($this->textToSearch, $callback(), $this->event, $this->sleep));
+        dispatch(new JobRunningChecker($this->textToSearch, ($this->callback)(), $this->event, $this->sleep));
     }
 
     /**
@@ -116,13 +116,12 @@ class JobRunningChecker implements ShouldQueue
      */
     private function runPayload()
     {
-        $callback = $this->serializer->unserialize($this->callback);
 
         if ($this->event)
             event(new $this->event());
 
-        if (is_callable($callback)) {
-            $callback();
+        if (is_callable($this->callback)) {
+            ($this->callback)();
         }
     }
 }
