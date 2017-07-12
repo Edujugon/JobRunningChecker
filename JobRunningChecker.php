@@ -86,7 +86,7 @@ class JobRunningChecker implements ShouldQueue
      *
      * @return bool
      */
-    public function foundText()
+    private function foundText()
     {
         $count = DB::table('jobs')->where('payload', 'like', '%' . $this->textToSearch . '%')
             ->where('payload', 'not like', '%' . 'JobRunningChecker' . '%')
